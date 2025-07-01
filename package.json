@@ -2,14 +2,15 @@
   "name": "backend",
   "type": "module",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot ./src/index.ts",
+    "start": "prisma generate && bun run ./src/index.ts"
   },
   "dependencies": {
-    "@node-rs/argon2": "^2.0.2",
     "@prisma/client": "^6.10.1",
     "@scure/base": "^1.2.6",
-    "jose": "^6.0.11",
+    "hash-wasm": "^4.12.0",
     "hono": "^4.8.3",
+    "jose": "^6.0.11",
     "prisma": "^6.10.1",
     "radashi": "^12.6.0",
     "uuid": "^11.1.0",
