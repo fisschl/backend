@@ -1,7 +1,16 @@
 import { Hono } from "hono";
-import { changeUserInfo, ServerError, signIn, signUp, useSignJWT } from "./utils/sign";
+import {
+  changeUserInfo,
+  ServerError,
+  signIn,
+  signUp,
+  useSignJWT,
+  useVerifyJWT,
+} from "./utils/sign";
 import { setCookie } from "hono/cookie";
 import { logger } from "hono/logger";
+import { prisma } from "./utils/db";
+import { omit } from "radashi";
 
 const api = new Hono()
   .post("/user/sign-up", async (ctx) => {
@@ -20,9 +29,20 @@ const api = new Hono()
     return ctx.json({ ...user, token: jwt });
   })
   .put("/user/info", async (ctx) => {
+    const { user_id } = await useVerifyJWT(ctx);
     const body = await ctx.req.json();
-    const user = await changeUserInfo(body);
+    const user = await changeUserInfo({ ...body, user_id });
     return ctx.json(user);
+  })
+  .get("/user/info", async (ctx) => {
+    const { user_id } = await useVerifyJWT(ctx);
+    const user = await prisma.user.findUnique({
+      where: {
+        user_id,
+      },
+    });
+    if (!user) throw new ServerError(404, "用户不存在");
+    return ctx.json(omit(user, ["password"]));
   });
 
 const app = new Hono();
