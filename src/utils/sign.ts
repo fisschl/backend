@@ -7,18 +7,18 @@ import { getCookie } from "hono/cookie";
 import { z } from "zod/v4";
 import { ContentfulStatusCode } from "hono/utils/http-status";
 
-export const signUp = async (options: {
-  user_name: string;
-  password: string;
-  email: string;
-}) => {
+const SignUpSchema = z.object({
+  user_name: z.string(),
+  password: z.string(),
+  email: z.string(),
+});
+
+export const signUp = async (params: z.infer<typeof SignUpSchema>) => {
   try {
+    const parsed = SignUpSchema.parse(params);
+    parsed.password = await argon2Hash(parsed.password);
     const user = await prisma.user.create({
-      data: {
-        user_name: options.user_name,
-        password: await argon2Hash(options.password),
-        email: options.email,
-      },
+      data: parsed,
     });
     return omit(user, ["password"]);
   } catch {
@@ -26,14 +26,20 @@ export const signUp = async (options: {
   }
 };
 
-export const signIn = async (options: { name: string; password: string }) => {
+const SignInSchema = z.object({
+  name: z.string(),
+  password: z.string(),
+});
+
+export const signIn = async (params: z.infer<typeof SignInSchema>) => {
+  const parsed = SignInSchema.parse(params);
   const userList = await prisma.user.findMany({
     where: {
-      OR: [{ user_name: options.name }, { email: options.name }],
+      OR: [{ user_name: parsed.name }, { email: parsed.name }],
     },
   });
   for (const user of userList) {
-    const isPasswordValid = await argon2Verify(user.password, options.password);
+    const isPasswordValid = await argon2Verify(user.password, parsed.password);
     if (!isPasswordValid) continue;
     return omit(user, ["password"]);
   }
@@ -79,3 +85,25 @@ export class ServerError extends Error {
     this.status = status;
   }
 }
+
+const ChangeUserInfoSchema = z.object({
+  user_id: z.string(),
+  user_name: z.string().optional(),
+  password: z.string().optional(),
+  email: z.string().optional(),
+});
+
+export const changeUserInfo = async (
+  params: z.infer<typeof ChangeUserInfoSchema>
+) => {
+  const parsed = ChangeUserInfoSchema.parse(params);
+  if (parsed.password) parsed.password = await argon2Hash(parsed.password);
+  else parsed.password = undefined;
+  const user = await prisma.user.update({
+    where: {
+      user_id: parsed.user_id,
+    },
+    data: parsed,
+  });
+  return omit(user, ["password"]);
+};

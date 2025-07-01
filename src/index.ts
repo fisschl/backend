@@ -1,23 +1,28 @@
 import { Hono } from "hono";
-import { ServerError, signIn, signUp, useSignJWT } from "./utils/sign";
+import { changeUserInfo, ServerError, signIn, signUp, useSignJWT } from "./utils/sign";
 import { setCookie } from "hono/cookie";
 import { logger } from "hono/logger";
 
 const api = new Hono()
   .post("/user/sign-up", async (ctx) => {
-    const { user_name, password, email } = await ctx.req.json();
-    const user = await signUp({ user_name, password, email });
+    const body = await ctx.req.json();
+    const user = await signUp(body);
     const jwt = await useSignJWT({ user_id: user.user_id });
     setCookie(ctx, "token", jwt);
     return ctx.json({ ...user, token: jwt });
   })
   .post("/user/sign-in", async (ctx) => {
-    const { name, password } = await ctx.req.json();
-    const user = await signIn({ name, password });
+    const body = await ctx.req.json();
+    const user = await signIn(body);
     if (!user) throw new ServerError(401, "用户名或密码错误");
     const jwt = await useSignJWT({ user_id: user.user_id });
     setCookie(ctx, "token", jwt);
     return ctx.json({ ...user, token: jwt });
+  })
+  .put("/user/info", async (ctx) => {
+    const body = await ctx.req.json();
+    const user = await changeUserInfo(body);
+    return ctx.json(user);
   });
 
 const app = new Hono();
