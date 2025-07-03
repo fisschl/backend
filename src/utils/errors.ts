@@ -1,5 +1,5 @@
-import { ErrorHandler } from "hono";
-import { ContentfulStatusCode } from "hono/utils/http-status";
+import type { ErrorHandler } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 
 export class ServerError extends Error {
   status: ContentfulStatusCode;

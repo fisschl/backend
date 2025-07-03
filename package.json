@@ -1,22 +1,20 @@
 {
   "name": "backend",
-  "type": "module",
+  "devDependencies": {
+    "@types/bun": "^1.2.17",
+    "hono": "^4.8.3",
+    "jose": "^6.0.11",
+    "prisma": "^6.10.1",
+    "@prisma/client": "^6.10.1",
+    "uuid": "^11.1.0",
+    "radashi": "^12.6.0",
+    "zod": "^3.25.67",
+    "@scure/base": "^1.2.6",
+    "obuild": "^0.2.1"
+  },
   "scripts": {
     "dev": "bun run --hot ./src/index.ts",
     "start": "prisma generate && bun run ./src/index.ts"
   },
-  "dependencies": {
-    "@prisma/client": "^6.10.1",
-    "@scure/base": "^1.2.6",
-    "hash-wasm": "^4.12.0",
-    "hono": "^4.8.3",
-    "jose": "^6.0.11",
-    "prisma": "^6.10.1",
-    "radashi": "^12.6.0",
-    "uuid": "^11.1.0",
-    "zod": "^3.25.67"
-  },
-  "devDependencies": {
-    "@types/bun": "^1.2.17"
-  }
+  "type": "module"
 }

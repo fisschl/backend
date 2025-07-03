@@ -1,10 +1,9 @@
 import { prisma } from "../utils/db";
 import { omit } from "radashi";
 import { sign as jwtSign, verify as jwtVerify } from "hono/jwt";
-import { Context } from "hono";
+import type { Context } from "hono";
 import { getCookie } from "hono/cookie";
 import { z } from "zod/v4";
-import { argon2id, argon2Verify } from "hash-wasm";
 import { ServerError } from "../utils/errors";
 
 const SignUpSchema = z.object({
@@ -13,24 +12,10 @@ const SignUpSchema = z.object({
   email: z.string(),
 });
 
-const hashPassword = async (password: string) => {
-  const salt = new Uint8Array(16);
-  crypto.getRandomValues(salt);
-  return await argon2id({
-    password,
-    salt,
-    parallelism: 1,
-    iterations: 256,
-    memorySize: 512,
-    hashLength: 32,
-    outputType: "encoded",
-  });
-};
-
 export const signUp = async (params: z.infer<typeof SignUpSchema>) => {
   try {
     const parsed = SignUpSchema.parse(params);
-    parsed.password = await hashPassword(parsed.password);
+    parsed.password = await Bun.password.hash(parsed.password);
     const user = await prisma.user.create({
       data: parsed,
     });
@@ -53,10 +38,10 @@ export const signIn = async (params: z.infer<typeof SignInSchema>) => {
     },
   });
   for (const user of userList) {
-    const isPasswordValid = await argon2Verify({
-      password: parsed.password,
-      hash: user.password,
-    });
+    const isPasswordValid = await Bun.password.verify(
+      parsed.password,
+      user.password
+    );
     if (!isPasswordValid) continue;
     return omit(user, ["password"]);
   }
@@ -106,7 +91,7 @@ export const changeUserInfo = async (
   params: z.infer<typeof ChangeUserInfoSchema>
 ) => {
   const parsed = ChangeUserInfoSchema.parse(params);
-  if (parsed.password) parsed.password = await hashPassword(parsed.password);
+  if (parsed.password) parsed.password = await Bun.password.hash(parsed.password);
   else parsed.password = undefined;
   const user = await prisma.user.update({
     where: {
