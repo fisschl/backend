@@ -6,15 +6,15 @@ import { getCookie } from "hono/cookie";
 import { z } from "zod/v4";
 import { ServerError } from "../utils/errors";
 
-const SignUpSchema = z.object({
+const SignUpZod = z.object({
   user_name: z.string(),
   password: z.string(),
   email: z.string(),
 });
 
-export const signUp = async (params: z.infer<typeof SignUpSchema>) => {
+export const signUp = async (params: z.infer<typeof SignUpZod>) => {
   try {
-    const parsed = SignUpSchema.parse(params);
+    const parsed = SignUpZod.parse(params);
     parsed.password = await Bun.password.hash(parsed.password);
     const user = await prisma.user.create({
       data: parsed,
@@ -25,13 +25,13 @@ export const signUp = async (params: z.infer<typeof SignUpSchema>) => {
   }
 };
 
-const SignInSchema = z.object({
+const SignInZod = z.object({
   name: z.string(),
   password: z.string(),
 });
 
-export const signIn = async (params: z.infer<typeof SignInSchema>) => {
-  const parsed = SignInSchema.parse(params);
+export const signIn = async (params: z.infer<typeof SignInZod>) => {
+  const parsed = SignInZod.parse(params);
   const userList = await prisma.user.findMany({
     where: {
       OR: [{ user_name: parsed.name }, { email: parsed.name }],
@@ -47,11 +47,11 @@ export const signIn = async (params: z.infer<typeof SignInSchema>) => {
   }
 };
 
-export const JWTPayloadSchema = z.object({
+export const JWTPayloadZod = z.object({
   user_id: z.string(),
 });
 
-export type JWTPayload = z.infer<typeof JWTPayloadSchema>;
+export type JWTPayload = z.infer<typeof JWTPayloadZod>;
 
 export const useSignJWT = async (payload: JWTPayload) => {
   const { HS256_SECRET } = Bun.env;
@@ -77,10 +77,10 @@ export const useVerifyJWT = async (ctx: Context): Promise<JWTPayload> => {
   const token = getToken(ctx);
   if (!token) throw new ServerError(401, "请先登录");
   const payload = await jwtVerify(token, HS256_SECRET, "HS256");
-  return JWTPayloadSchema.parse(payload);
+  return JWTPayloadZod.parse(payload);
 };
 
-const ChangeUserInfoSchema = z.object({
+const ChangeUserInfoZod = z.object({
   user_id: z.string(),
   user_name: z.string().optional(),
   password: z.string().optional(),
@@ -88,9 +88,9 @@ const ChangeUserInfoSchema = z.object({
 });
 
 export const changeUserInfo = async (
-  params: z.infer<typeof ChangeUserInfoSchema>
+  params: z.infer<typeof ChangeUserInfoZod>
 ) => {
-  const parsed = ChangeUserInfoSchema.parse(params);
+  const parsed = ChangeUserInfoZod.parse(params);
   if (parsed.password) parsed.password = await Bun.password.hash(parsed.password);
   else parsed.password = undefined;
   const user = await prisma.user.update({
