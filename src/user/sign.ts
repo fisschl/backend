@@ -68,7 +68,7 @@ const getToken = (ctx: Context) => {
   if (cookieToken) return cookieToken;
   const bearer = ctx.req.header("Authorization");
   const bearerMatch = bearer?.match(BearerRegex);
-  if (bearerMatch) return bearerMatch[1]!;
+  if (bearerMatch) return bearerMatch[1];
 };
 
 export const useVerifyJWT = async (ctx: Context): Promise<JWTPayload> => {
