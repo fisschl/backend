@@ -14,7 +14,7 @@
   },
   "scripts": {
     "dev": "bun run --hot ./src/index.ts",
-    "start": "prisma generate && bun run ./src/index.ts"
+    "build": "prisma generate && bun run ./build.ts"
   },
   "type": "module"
 }
