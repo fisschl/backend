@@ -3,7 +3,7 @@ import { omit } from "radashi";
 import { sign as jwtSign, verify as jwtVerify } from "hono/jwt";
 import type { Context } from "hono";
 import { getCookie } from "hono/cookie";
-import { z } from "zod/v4";
+import { z } from "../utils/zod";
 import { ServerError } from "../utils/errors";
 
 const SignUpZod = z.object({
