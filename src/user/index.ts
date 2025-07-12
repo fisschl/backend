@@ -33,20 +33,18 @@ export const SignInZod = z.object({
 
 export const signIn = async (params: z.infer<typeof SignInZod>) => {
   const data = validate(params, SignInZod);
-  const userList = await prisma.user.findMany({
+  const user = await prisma.user.findFirst({
     where: {
-      OR: [{ userName: data.loginName }, { email: data.loginName }],
+      email: data.loginName,
     },
   });
-  for (const user of userList) {
-    const isPasswordValid = await Bun.password.verify(
-      data.password,
-      user.password
-    );
-    if (!isPasswordValid) continue;
-    return omit(user, ["password"]);
-  }
-  throw new ServerError(401, "用户名或密码错误");
+  if (!user) throw new ServerError(401, "用户名或密码错误");
+  const isPasswordValid = await Bun.password.verify(
+    data.password,
+    user.password
+  );
+  if (!isPasswordValid) throw new ServerError(401, "用户名或密码错误");
+  return omit(user, ["password"]);
 };
 
 const getTokenFromContext = (ctx: Context) => {
