@@ -1,5 +1,6 @@
-import type { ErrorHandler } from "hono";
+import { createConsola } from "consola";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { z, type ZodType } from "zod";
 
 export class ServerError extends Error {
   status: ContentfulStatusCode;
@@ -9,9 +10,10 @@ export class ServerError extends Error {
   }
 }
 
-export const errorHandler: ErrorHandler = (err, ctx) => {
-  if (err instanceof ServerError)
-    return ctx.json({ error: err.message }, err.status);
-  if (err instanceof Error) return ctx.json({ error: err.message }, 500);
-  return ctx.json({ error: "请求失败，请稍后重试" }, 500);
+export const consola = createConsola();
+
+export const validate = <T>(params: unknown, schema: ZodType<T>) => {
+  const result = schema.safeParse(params);
+  if (result.success) return result.data;
+  throw new ServerError(400, z.prettifyError(result.error));
 };

@@ -7,12 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model user {
-  user_id    String   @id @default(uuid(7)) @db.Uuid
-  user_name  String
-  password   String
-  email      String   @unique
-  role       String   @default("用户")
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+model User {
+  userId    String   @id @default(uuid(7)) @db.Uuid
+  userName  String
+  password  String
+  email     String   @unique
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tokens    Token[]
+
+  @@index([email])
+  @@index([userName])
+}
+
+model Token {
+  token     String   @id
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }
