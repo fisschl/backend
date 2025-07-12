@@ -1,14 +1,5 @@
 {
   "name": "backend",
-  "type": "module",
-  "scripts": {
-    "dev": "bun run --hot ./src/index.ts",
-    "postinstall": "prisma generate",
-    "build": "bun build ./src/index.ts --outdir ./dist"
-  },
-  "dependencies": {
-    "lru-cache": "^11.1.0"
-  },
   "devDependencies": {
     "@prisma/client": "^6.11.1",
     "@scure/base": "^1.2.6",
@@ -16,10 +7,17 @@
     "@types/bun": "^1.2.18",
     "consola": "^3.4.2",
     "hono": "^4.8.4",
+    "lru-cache": "^11.1.0",
     "ofetch": "^1.4.1",
     "prisma": "^6.11.1",
     "radashi": "^12.6.0",
     "uuid": "^11.1.0",
     "zod": "^4.0.5"
-  }
+  },
+  "scripts": {
+    "dev": "bun run --hot ./src/index.ts",
+    "postinstall": "prisma generate",
+    "build": "bun build ./src/index.ts --outdir ./dist"
+  },
+  "type": "module"
 }
