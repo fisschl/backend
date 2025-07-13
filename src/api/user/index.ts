@@ -1,9 +1,10 @@
 import type { User } from "@prisma/client";
+import { subDays } from "date-fns";
 import { Hono, type Context } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { HTTPException } from "hono/http-exception";
 import { LRUCache } from "lru-cache";
-import { omit } from "radashi";
+import { omit, throttle } from "radashi";
 import { z } from "zod";
 import { newToken, prisma } from "../../utils/db";
 import { validate } from "../../utils/errors";
@@ -54,12 +55,8 @@ const getTokenFromContext = (ctx: Context) => {
   if (cookieToken) return cookieToken;
 };
 
-/**
- * 用户缓存，通过 userId 或 token 获取用户信息
- */
 export const userCache = new LRUCache<string, Omit<User, "password">>({
-  max: 32 * 1024,
-  // 24 小时
+  max: 1024,
   ttl: 1000 * 60 * 60 * 24,
 });
 
@@ -77,9 +74,14 @@ export const selectUserByUserId = async (userId: string) => {
   return result;
 };
 
+export const tokenCache = new LRUCache<string, string>({
+  max: 6 * 1024,
+  ttl: 1000 * 60 * 60 * 24,
+});
+
 export const selectUserByToken = async (token: string) => {
-  const cachedUser = userCache.get(token);
-  if (cachedUser) return cachedUser;
+  const userId = tokenCache.get(token);
+  if (userId) return selectUserByUserId(userId);
   const tokenInfo = await prisma.token.findUnique({
     where: {
       token,
@@ -88,7 +90,7 @@ export const selectUserByToken = async (token: string) => {
   if (!tokenInfo) return;
   const user = await selectUserByUserId(tokenInfo.userId);
   if (!user) return;
-  userCache.set(token, user);
+  tokenCache.set(token, user.userId);
   return user;
 };
 
@@ -119,38 +121,60 @@ const registerNewToken = async (ctx: Context, user: Omit<User, "password">) => {
   return token;
 };
 
-export const userRouter = new Hono()
-  .post("/signUp", async (ctx) => {
+const clearOutdatedToken = throttle({ interval: 1000 * 60 }, async () => {
+  const date = subDays(new Date(), 60);
+  const tokens = await prisma.token.findMany({
+    where: {
+      createdAt: {
+        lt: date,
+      },
+    },
+    take: 1024,
+    select: { token: true },
+  });
+  await prisma.token.deleteMany({
+    where: {
+      token: { in: tokens.map((token) => token.token) },
+    },
+  });
+  for (const token of tokens) tokenCache.delete(token.token);
+});
+
+export const user = new Hono()
+  .post("/register", async (ctx) => {
     const body = await ctx.req.json();
     const user = await signUp(body);
     const token = await registerNewToken(ctx, user);
     return ctx.json({ ...user, token });
   })
-  .post("/signIn", async (ctx) => {
+  .post("/login", async (ctx) => {
     const body = await ctx.req.json();
     const user = await signIn(body);
     const token = await registerNewToken(ctx, user);
+    clearOutdatedToken();
     return ctx.json({ ...user, token });
   })
   .put("/userInfo", async (ctx) => {
     const currentUser = await useNeedLogin(ctx);
     const body = await ctx.req.json();
     const data = validate(body, ChangeUserInfoZod);
-    let userId = currentUser.userId;
-    if (data.userId) {
-      if (currentUser.role !== "SUPER_ADMIN" && userId !== data.userId)
-        throw new HTTPException(403, { message: "无权限" });
-      if (userId !== data.userId) userId = data.userId;
-    }
+    const userId = data.userId || currentUser.userId;
+    if (userId !== currentUser.userId && currentUser.role !== "SUPER_ADMIN")
+      throw new HTTPException(403, { message: "无权限" });
     const user = await prisma.user.update({
       where: {
         userId,
       },
       data: omit(data, ["userId"]),
     });
+    userCache.set(userId, omit(user, ["password"]));
     return ctx.json(omit(user, ["password"]));
   })
-  .get("/me", async (ctx) => {
-    const user = await useNeedLogin(ctx);
+  .get("/userInfo", async (ctx) => {
+    const { userId } = ctx.req.query();
+    const currentUser = await useNeedLogin(ctx);
+    if (!userId || userId === currentUser.userId) return ctx.json(currentUser);
+    const user = await selectUserByUserId(userId);
+    if (!user) throw new HTTPException(404, { message: "用户不存在" });
     return ctx.json(user);
   });
