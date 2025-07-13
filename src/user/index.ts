@@ -103,35 +103,52 @@ const useNeedLogin = async (ctx: Context) => {
 };
 
 const ChangeUserInfoZod = z.object({
+  userId: z.string().optional(),
   userName: z.string().optional(),
   password: z.string().optional(),
   email: z.string().optional(),
 });
 
+const registerNewToken = async (ctx: Context, user: Omit<User, "password">) => {
+  const token = newToken();
+  await prisma.token.create({
+    data: {
+      token,
+      userId: user.userId,
+    },
+  });
+  setCookie(ctx, "token", token);
+  return token;
+};
+
 export const user = new Hono()
   .post("/signUp", async (ctx) => {
     const body = await ctx.req.json();
     const user = await signUp(body);
-    const token = newToken();
-    setCookie(ctx, "token", token);
+    const token = await registerNewToken(ctx, user);
     return ctx.json({ ...user, token });
   })
   .post("/signIn", async (ctx) => {
     const body = await ctx.req.json();
     const user = await signIn(body);
-    const token = newToken();
-    setCookie(ctx, "token", token);
+    const token = await registerNewToken(ctx, user);
     return ctx.json({ ...user, token });
   })
   .put("/userInfo", async (ctx) => {
-    const { userId } = await useNeedLogin(ctx);
+    const currentUser = await useNeedLogin(ctx);
     const body = await ctx.req.json();
     const data = validate(body, ChangeUserInfoZod);
+    let userId = currentUser.userId;
+    if (data.userId) {
+      if (currentUser.role !== "SUPER_ADMIN" && userId !== data.userId)
+        throw new ServerError(403, "无权限");
+      if (userId !== data.userId) userId = data.userId;
+    }
     const user = await prisma.user.update({
       where: {
         userId,
       },
-      data,
+      data: omit(data, ["userId"]),
     });
     return ctx.json(omit(user, ["password"]));
   })
