@@ -1,11 +1,12 @@
-import { Hono, type Context } from "hono";
-import { omit } from "radashi";
-import { getCookie, setCookie } from "hono/cookie";
-import { ServerError, validate } from "../../utils/errors";
-import { newToken, prisma } from "../../utils/db";
-import { LRUCache } from "lru-cache";
-import { z } from "zod";
 import type { User } from "@prisma/client";
+import { Hono, type Context } from "hono";
+import { getCookie, setCookie } from "hono/cookie";
+import { HTTPException } from "hono/http-exception";
+import { LRUCache } from "lru-cache";
+import { omit } from "radashi";
+import { z } from "zod";
+import { newToken, prisma } from "../../utils/db";
+import { validate } from "../../utils/errors";
 
 const SignUpZod = z.object({
   userName: z.string(),
@@ -22,7 +23,7 @@ export const signUp = async (params: z.infer<typeof SignUpZod>) => {
     });
     return omit(user, ["password"]);
   } catch {
-    throw new ServerError(400, "该用户已存在");
+    throw new HTTPException(400, { message: "该用户已存在" });
   }
 };
 
@@ -38,12 +39,9 @@ export const signIn = async (params: z.infer<typeof SignInZod>) => {
       email: data.loginName,
     },
   });
-  if (!user) throw new ServerError(401, "用户名或密码错误");
-  const isPasswordValid = await Bun.password.verify(
-    data.password,
-    user.password
-  );
-  if (!isPasswordValid) throw new ServerError(401, "用户名或密码错误");
+  if (!user) throw new HTTPException(401, { message: "用户名或密码错误" });
+  const isPasswordValid = await Bun.password.verify(data.password, user.password);
+  if (!isPasswordValid) throw new HTTPException(401, { message: "用户名或密码错误" });
   return omit(user, ["password"]);
 };
 
@@ -96,9 +94,9 @@ export const selectUserByToken = async (token: string) => {
 
 const useNeedLogin = async (ctx: Context) => {
   const token = getTokenFromContext(ctx);
-  if (!token) throw new ServerError(401, "请先登录");
+  if (!token) throw new HTTPException(401, { message: "请先登录" });
   const user = await selectUserByToken(token);
-  if (!user) throw new ServerError(401, "登录态非法");
+  if (!user) throw new HTTPException(401, { message: "登录态非法" });
   return user;
 };
 
@@ -141,7 +139,7 @@ export const userRouter = new Hono()
     let userId = currentUser.userId;
     if (data.userId) {
       if (currentUser.role !== "SUPER_ADMIN" && userId !== data.userId)
-        throw new ServerError(403, "无权限");
+        throw new HTTPException(403, { message: "无权限" });
       if (userId !== data.userId) userId = data.userId;
     }
     const user = await prisma.user.update({
