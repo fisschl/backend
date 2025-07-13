@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { signIn, signUp } from ".";
-import { prisma } from "../utils/db";
+import { prisma } from "../../utils/db";
 
 test("signUp", async () => {
   const user = await signUp({

@@ -1,8 +1,8 @@
 import { Hono, type Context } from "hono";
 import { omit } from "radashi";
 import { getCookie, setCookie } from "hono/cookie";
-import { ServerError, validate } from "../utils/errors";
-import { newToken, prisma } from "../utils/db";
+import { ServerError, validate } from "../../utils/errors";
+import { newToken, prisma } from "../../utils/db";
 import { LRUCache } from "lru-cache";
 import { z } from "zod";
 import type { User } from "@prisma/client";
@@ -121,7 +121,7 @@ const registerNewToken = async (ctx: Context, user: Omit<User, "password">) => {
   return token;
 };
 
-export const user = new Hono()
+export const userRouter = new Hono()
   .post("/signUp", async (ctx) => {
     const body = await ctx.req.json();
     const user = await signUp(body);
