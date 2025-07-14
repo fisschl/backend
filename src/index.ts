@@ -2,7 +2,8 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { api } from "./api";
-import { socket, websocket } from "./socket";
+import { websocket } from "./utils/socket";
+import { ws } from "./ws";
 
 const app = new Hono()
   .use(logger())
@@ -12,7 +13,7 @@ const app = new Hono()
     return ctx.json({ error: "请求失败，请稍后重试" }, 500);
   })
   .route("/api", api)
-  .get("/socket", socket);
+  .route("/ws", ws);
 
 export default {
   port: 4000,
