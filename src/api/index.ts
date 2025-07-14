@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { s3 } from "../utils/db";
+import { chat } from "./chat";
 import { user } from "./user";
 
 export const api = new Hono()
@@ -13,4 +14,5 @@ export const api = new Hono()
     });
     return ctx.redirect(url);
   })
-  .route("/user", user);
+  .route("/user", user)
+  .route("/chat", chat);
