@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { api } from "./api";
@@ -7,6 +8,7 @@ import { ws } from "./ws";
 
 const app = new Hono()
   .use(logger())
+  .use(cors())
   .onError((err, ctx) => {
     if (err instanceof HTTPException) return err.getResponse();
     if (err instanceof Error) return ctx.json({ message: err.message }, 500);
