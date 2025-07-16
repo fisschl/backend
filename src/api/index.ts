@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { s3 } from "../utils/db";
+import { s3, uuid } from "../utils/db";
 import { chat } from "./chat";
 import { user } from "./user";
 
@@ -15,4 +15,10 @@ export const api = new Hono()
     return ctx.redirect(url);
   })
   .route("/user", user)
-  .route("/chat", chat);
+  .route("/chat", chat)
+  .post("/uuid", (ctx) => {
+    return ctx.json({
+      uuid: uuid(),
+      createTime: new Date().toISOString(),
+    });
+  });
