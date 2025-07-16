@@ -8,8 +8,10 @@
     "@types/bun": "^1.2.18",
     "ai": "^4.3.19",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.0",
     "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.44.3",
+    "drizzle-zod": "^0.8.2",
     "emittery": "^1.2.0",
     "hono": "^4.8.5",
     "lru-cache": "^11.1.0",
@@ -21,8 +23,10 @@
     "zod": "^4.0.5"
   },
   "scripts": {
-    "dev": "bun run --hot ./src/index.ts",
-    "build": "bun build ./src/index.ts --outdir ./dist --target bun --format esm"
+    "dev": "bun run --hot ./index.ts",
+    "build": "bun build ./index.ts --outdir ./dist --target bun --format esm",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "type": "module",
   "dependencies": {}
