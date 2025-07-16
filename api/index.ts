@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { s3, uuid } from "../utils/db";
+import { s3, uuid } from "../utils/s3";
 import { chat } from "./chat";
 import { user } from "./user";
 

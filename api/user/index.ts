@@ -1,4 +1,3 @@
-import type { User } from "@prisma/client";
 import { subDays } from "date-fns";
 import { Hono, type Context } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
@@ -6,8 +5,9 @@ import { HTTPException } from "hono/http-exception";
 import { LRUCache } from "lru-cache";
 import { omit, throttle } from "radashi";
 import { z } from "zod";
-import { newToken, prisma } from "../../utils/db";
-import { validate } from "../../utils/errors";
+import type { User } from "../../prisma/generated/client";
+import { newToken, prisma } from "../../utils/s3";
+import { validate } from "../../utils/zod";
 
 const SignUpZod = z.object({
   userName: z.string(),
