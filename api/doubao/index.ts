@@ -1,11 +1,21 @@
-import { H3, HTTPError, readBody } from "h3";
+import { H3 } from "h3";
+import { z } from "zod";
+import { validate } from "../../utils/zod";
 
 const { DOUBAO_API_KEY, DOUBAO_MODEL } = Bun.env;
 
+const DoubaoThinkingZod = z.object({
+  type: z.enum(["enabled", "disabled", "auto"]),
+});
+
+const DoubaoChatZod = z.object({
+  messages: z.array(z.any()),
+  thinking: DoubaoThinkingZod.optional(),
+});
+
 export const doubao = new H3().post("/chat", async (event) => {
-  const body = await readBody<Record<string, any>>(event);
-  if (!body) throw new HTTPError("Bad Request", { status: 400 });
-  const { messages, thinking } = body;
+  const body = await event.req.json();
+  const { messages, thinking } = validate(body, DoubaoChatZod);
   return fetch("https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
     method: "POST",
     headers: {

@@ -1,6 +1,6 @@
 import { subDays } from "date-fns";
 import { eq, inArray, lt } from "drizzle-orm";
-import { getCookie, getQuery, H3, H3Event, HTTPError, readBody, setCookie } from "h3";
+import { getCookie, getQuery, H3, H3Event, HTTPError, setCookie } from "h3";
 import { LRUCache } from "lru-cache";
 import { omit, throttle } from "radashi";
 import { z } from "zod";
@@ -99,7 +99,7 @@ const ChangeUserInfoZod = UserUpdateZod.partial();
 
 export const user = new H3()
   .post("/register", async (event) => {
-    const body = await readBody(event);
+    const body = await event.req.json();
     const data = validate(body, SignUpZod);
     data.password = await Bun.password.hash(data.password);
     try {
@@ -117,7 +117,7 @@ export const user = new H3()
     }
   })
   .post("/login", async (event) => {
-    const body = await readBody(event);
+    const body = await event.req.json();
     const data = validate(body, SignInZod);
     const [user] = await db.select().from(users).where(eq(users.email, data.email));
     if (!user) throw new HTTPError("用户名或密码错误", { status: 401 });
@@ -129,7 +129,7 @@ export const user = new H3()
   })
   .put("/userInfo", async (event) => {
     const currentUser = await useNeedLogin(event);
-    const body = await readBody(event);
+    const body = await event.req.json();
     const data = validate(body, ChangeUserInfoZod);
     const userId = data.userId || currentUser.userId;
     if (userId !== currentUser.userId && currentUser.role !== "SUPER_ADMIN")
