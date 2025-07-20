@@ -1,8 +1,6 @@
 import { subDays } from "date-fns";
 import { eq, inArray, lt } from "drizzle-orm";
-import { Hono, type Context } from "hono";
-import { getCookie, setCookie } from "hono/cookie";
-import { HTTPException } from "hono/http-exception";
+import { getCookie, getQuery, H3, H3Event, HTTPError, readBody, setCookie } from "h3";
 import { LRUCache } from "lru-cache";
 import { omit, throttle } from "radashi";
 import { z } from "zod";
@@ -12,12 +10,14 @@ import { UserInsertZod, UserSelectZod, UserUpdateZod } from "../../drizzle/zod";
 import { uuid } from "../../utils/uuid";
 import { validate } from "../../utils/zod";
 
-const getTokenFromContext = (ctx: Context) => {
-  const queryToken = ctx.req.query("token");
+const getTokenFromEvent = (event: H3Event) => {
+  const query = getQuery(event);
+  const queryToken = query.token;
   if (queryToken) return queryToken;
-  const headerToken = ctx.req.header("token");
+  const { req } = event;
+  const headerToken = req.headers.get("token");
   if (headerToken) return headerToken;
-  const cookieToken = getCookie(ctx, "token");
+  const cookieToken = getCookie(event, "token");
   if (cookieToken) return cookieToken;
 };
 
@@ -54,21 +54,21 @@ export const selectUserByToken = async (token: string) => {
   return user;
 };
 
-const useNeedLogin = async (ctx: Context) => {
-  const token = getTokenFromContext(ctx);
-  if (!token) throw new HTTPException(401, { message: "请先登录" });
+const useNeedLogin = async (event: any) => {
+  const token = getTokenFromEvent(event);
+  if (!token) throw new HTTPError("请先登录", { status: 401 });
   const user = await selectUserByToken(token);
-  if (!user) throw new HTTPException(401, { message: "登录态非法" });
+  if (!user) throw new HTTPError("登录态非法", { status: 401 });
   return user;
 };
 
-const registerNewToken = async (ctx: Context, user: CacheUser) => {
+const registerNewToken = async (event: any, user: CacheUser) => {
   const token = uuid();
   await db.insert(tokens).values({
     token,
     userId: user.userId,
   });
-  setCookie(ctx, "token", token);
+  setCookie(event, "token", token);
   return token;
 };
 
@@ -97,9 +97,9 @@ const SignInZod = z.object({
 // 基于 UserUpdateZod 创建用户信息更新模式
 const ChangeUserInfoZod = UserUpdateZod.partial();
 
-export const user = new Hono()
-  .post("/register", async (ctx) => {
-    const body = await ctx.req.json();
+export const user = new H3()
+  .post("/register", async (event) => {
+    const body = await readBody(event);
     const data = validate(body, SignUpZod);
     data.password = await Bun.password.hash(data.password);
     try {
@@ -110,30 +110,30 @@ export const user = new Hono()
           userId: uuid(),
         })
         .returning();
-      const token = await registerNewToken(ctx, omit(user!, ["password"]));
-      return ctx.json({ ...omit(user!, ["password"]), token });
+      const token = await registerNewToken(event, omit(user!, ["password"]));
+      return { ...omit(user!, ["password"]), token };
     } catch {
-      throw new HTTPException(400, { message: "该用户已存在" });
+      throw new HTTPError("该用户已存在", { status: 400 });
     }
   })
-  .post("/login", async (ctx) => {
-    const body = await ctx.req.json();
+  .post("/login", async (event) => {
+    const body = await readBody(event);
     const data = validate(body, SignInZod);
     const [user] = await db.select().from(users).where(eq(users.email, data.email));
-    if (!user) throw new HTTPException(401, { message: "用户名或密码错误" });
+    if (!user) throw new HTTPError("用户名或密码错误", { status: 401 });
     const isPasswordValid = await Bun.password.verify(data.password, user.password);
-    if (!isPasswordValid) throw new HTTPException(401, { message: "用户名或密码错误" });
-    const token = await registerNewToken(ctx, omit(user, ["password"]));
+    if (!isPasswordValid) throw new HTTPError("用户名或密码错误", { status: 401 });
+    const token = await registerNewToken(event, omit(user, ["password"]));
     clearOutdatedToken();
-    return ctx.json({ ...omit(user, ["password"]), token });
+    return { ...omit(user, ["password"]), token };
   })
-  .put("/userInfo", async (ctx) => {
-    const currentUser = await useNeedLogin(ctx);
-    const body = await ctx.req.json();
+  .put("/userInfo", async (event) => {
+    const currentUser = await useNeedLogin(event);
+    const body = await readBody(event);
     const data = validate(body, ChangeUserInfoZod);
     const userId = data.userId || currentUser.userId;
     if (userId !== currentUser.userId && currentUser.role !== "SUPER_ADMIN")
-      throw new HTTPException(403, { message: "无权限" });
+      throw new HTTPError("无权限", { status: 403 });
 
     const updateData = omit(data, ["userId"]);
     const [user] = await db
@@ -144,15 +144,16 @@ export const user = new Hono()
 
     if (user) {
       userCache.set(userId, omit(user, ["password"]));
-      return ctx.json(omit(user, ["password"]));
+      return omit(user, ["password"]);
     }
-    throw new HTTPException(404, { message: "用户不存在" });
+    throw new HTTPError("用户不存在", { status: 404 });
   })
-  .get("/userInfo", async (ctx) => {
-    const { userId } = ctx.req.query();
-    const currentUser = await useNeedLogin(ctx);
-    if (!userId || userId === currentUser.userId) return ctx.json(currentUser);
-    const user = await selectUserByUserId(userId);
-    if (!user) throw new HTTPException(404, { message: "用户不存在" });
-    return ctx.json(user);
+  .get("/userInfo", async (event) => {
+    const query = getQuery(event);
+    const { userId } = query;
+    const currentUser = await useNeedLogin(event);
+    if (!userId || userId === currentUser.userId) return currentUser;
+    const user = await selectUserByUserId(userId as string);
+    if (!user) throw new HTTPError("用户不存在", { status: 404 });
+    return user;
   });

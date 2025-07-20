@@ -11,7 +11,7 @@
     "drizzle-orm": "^0.44.3",
     "drizzle-zod": "^0.8.2",
     "emittery": "^1.2.0",
-    "hono": "^4.8.5",
+    "h3": "^2.0.0-beta.1",
     "lru-cache": "^11.1.0",
     "ofetch": "^1.4.1",
     "oxlint": "^1.6.0",

@@ -1,22 +1,34 @@
-import { Hono } from "hono";
-import { cors } from "hono/cors";
-import { HTTPException } from "hono/http-exception";
-import { logger } from "hono/logger";
-import { api } from "./api";
-import { websocket } from "./utils/socket";
+import { getRequestURL, H3, handleCors, redirect, serve } from "h3";
+import { doubao } from "./api/doubao";
+import { user } from "./api/user";
+import { s3 } from "./utils/s3";
+import { uuid } from "./utils/uuid";
 
-const app = new Hono()
-  .use(logger())
-  .use(cors())
-  .onError((err, ctx) => {
-    if (err instanceof HTTPException) return err.getResponse();
-    if (err instanceof Error) return ctx.json({ message: err.message }, 500);
-    return ctx.json({ error: "请求失败，请稍后重试" }, 500);
+const app = new H3()
+  .use((event) => {
+    const isPreflight = handleCors(event, {
+      preflight: { statusCode: 204 },
+    });
+    if (isPreflight) return true;
   })
-  .route("/api", api);
+  .get("/api/static/**", async (event) => {
+    const { pathname } = getRequestURL(event);
+    const s3Path = pathname.slice(pathname.indexOf("/static/"));
+    const { res } = event;
+    res.headers.set("Cache-Control", `public, max-age=${60 * 60 * 23}`);
+    const url = s3.presign(s3Path, {
+      expiresIn: 60 * 60 * 24,
+      method: "GET",
+    });
+    return redirect(event, url, 302);
+  })
+  .post("/api/uuid", () => {
+    return {
+      uuid: uuid(),
+      createTime: new Date().toISOString(),
+    };
+  })
+  .mount("/api/user", user)
+  .mount("/api/doubao", doubao);
 
-export default {
-  port: 4000,
-  fetch: app.fetch,
-  websocket,
-};
+serve(app, { port: 4000 });
