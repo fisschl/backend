@@ -10,7 +10,7 @@ import { UserInsertZod, UserSelectZod, UserUpdateZod } from "../../drizzle/zod";
 import { uuid } from "../../utils/uuid";
 import { validate } from "../../utils/zod";
 
-const getTokenFromEvent = (event: H3Event) => {
+const tokenFromEvent = (event: H3Event) => {
   const query = getQuery(event);
   const queryToken = query.token;
   if (queryToken) return queryToken;
@@ -55,7 +55,7 @@ export const selectUserByToken = async (token: string) => {
 };
 
 const useNeedLogin = async (event: any) => {
-  const token = getTokenFromEvent(event);
+  const token = tokenFromEvent(event);
   if (!token) throw new HTTPError("请先登录", { status: 401 });
   const user = await selectUserByToken(token);
   if (!user) throw new HTTPError("登录态非法", { status: 401 });
