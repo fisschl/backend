@@ -5,6 +5,7 @@
     "@scure/base": "^1.2.6",
     "@tsconfig/bun": "^1.0.8",
     "@types/bun": "^1.2.18",
+    "consola": "^3.4.2",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.0",
     "drizzle-kit": "^0.31.4",

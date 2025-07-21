@@ -1,6 +1,7 @@
 import { getRequestURL, H3, handleCors, redirect, serve } from "h3";
 import { doubao } from "./api/doubao";
 import { user } from "./api/user";
+import { logger } from "./utils/logger";
 import { s3 } from "./utils/s3";
 import { uuid } from "./utils/uuid";
 
@@ -10,6 +11,11 @@ const app = new H3()
       preflight: { statusCode: 204 },
     });
     if (isPreflight) return true;
+  })
+  .use((event) => {
+    const { method } = event.req;
+    const { pathname } = getRequestURL(event);
+    logger.info(`[${method}] ${pathname}`);
   })
   .get("/api/static/**", async (event) => {
     const { pathname } = getRequestURL(event);
