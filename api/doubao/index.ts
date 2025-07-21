@@ -1,6 +1,6 @@
+import { validate } from "@/utils/zod";
 import { H3 } from "h3";
 import { z } from "zod";
-import { validate } from "../../utils/zod";
 
 const { DOUBAO_API_KEY, DOUBAO_MODEL } = Bun.env;
 

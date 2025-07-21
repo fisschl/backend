@@ -1,9 +1,9 @@
+import { doubao } from "@/api/doubao";
+import { user } from "@/api/user";
+import { logger } from "@/utils/logger";
+import { s3 } from "@/utils/s3";
+import { uuid } from "@/utils/uuid";
 import { getRequestURL, H3, handleCors, redirect, serve } from "h3";
-import { doubao } from "./api/doubao";
-import { user } from "./api/user";
-import { logger } from "./utils/logger";
-import { s3 } from "./utils/s3";
-import { uuid } from "./utils/uuid";
 
 const app = new H3()
   .use((event) => {
