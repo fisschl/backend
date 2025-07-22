@@ -4,6 +4,7 @@ import { logger } from "@/utils/logger";
 import { s3 } from "@/utils/s3";
 import { uuid } from "@/utils/uuid";
 import { getRequestURL, H3, handleCors, redirect, serve } from "h3";
+import { daysToSeconds } from "./utils/time";
 
 const app = new H3()
   .use((event) => {
@@ -21,9 +22,9 @@ const app = new H3()
     const { pathname } = getRequestURL(event);
     const s3Path = pathname.slice(pathname.indexOf("/static/"));
     const { res } = event;
-    res.headers.set("Cache-Control", `public, max-age=${60 * 60 * 24 * 29}`);
+    res.headers.set("Cache-Control", `public, max-age=${daysToSeconds(29)}`);
     const url = s3.presign(s3Path, {
-      expiresIn: 60 * 60 * 24 * 30,
+      expiresIn: daysToSeconds(30),
       method: "GET",
     });
     return redirect(event, url, 302);
