@@ -21,9 +21,9 @@ const app = new H3()
     const { pathname } = getRequestURL(event);
     const s3Path = pathname.slice(pathname.indexOf("/static/"));
     const { res } = event;
-    res.headers.set("Cache-Control", `public, max-age=${60 * 60 * 23}`);
+    res.headers.set("Cache-Control", `public, max-age=${60 * 60 * 24 * 29}`);
     const url = s3.presign(s3Path, {
-      expiresIn: 60 * 60 * 24,
+      expiresIn: 60 * 60 * 24 * 30,
       method: "GET",
     });
     return redirect(event, url, 302);
