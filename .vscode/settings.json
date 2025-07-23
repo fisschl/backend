@@ -4,5 +4,7 @@
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "explicit",
     "source.fixAll.oxc": "explicit"
-  }
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "files.autoSave": "onFocusChange"
 }
