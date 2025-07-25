@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { index, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { index, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", ["USER", "SUPER_ADMIN"]);
 
@@ -45,11 +45,3 @@ export const tokensRelations = relations(tokens, ({ one }) => ({
     references: [users.userId],
   }),
 }));
-
-export const poetry = pgTable("poetry", {
-  id: uuid("id").primaryKey(),
-  author: varchar("author", { length: 255 }).notNull(),
-  title: text("title").notNull(),
-  text: text("text").notNull(),
-  category: varchar("category", { length: 255 }).notNull(),
-});
