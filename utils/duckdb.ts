@@ -1,148 +1,241 @@
 import { DuckDBConnection } from "@duckdb/node-api";
 
-const attachPostgres = async () => {
-  const { DATABASE_URL } = Bun.env;
+const attachDucklake = async () => {
   const connection = await DuckDBConnection.create();
-  const { username, password, pathname, hostname, port } = new URL(DATABASE_URL!);
-  const paths = pathname
-    .replace(/[/\\]+/g, " ")
-    .trim()
-    .split(/\s+/);
-  const [dbname] = paths;
-  await connection.run(
-    `ATTACH 'dbname=${dbname} user=${username} password=${password} host=${hostname} port=${port}' AS db (TYPE postgres, SCHEMA 'public');`,
-  );
+  const { DUCKLAKE_POSTGRES } = Bun.env;
+  const { S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY } = Bun.env;
+  if (!S3_ENDPOINT) throw new Error("S3_ENDPOINT IS NOT SET");
+  const [bucket, ...endpoints] = S3_ENDPOINT.split(".");
+  const [region] = endpoints;
+  const endpoint = endpoints.join(".");
+  await connection.run(`
+    INSTALL ducklake;
+    INSTALL postgres;
+
+    CREATE SECRET ducklake_s3_secret (
+      TYPE s3,
+      PROVIDER config,
+      KEY_ID '${S3_ACCESS_KEY_ID}',
+      SECRET '${S3_SECRET_ACCESS_KEY}',
+      ENDPOINT '${endpoint}',
+      REGION '${region}'
+    );
+
+    CREATE SECRET ducklake_secret (
+    	TYPE DUCKLAKE,
+	    METADATA_PATH 'postgres:${DUCKLAKE_POSTGRES}',
+      DATA_PATH 's3://${bucket}/ducklake/'
+    );
+
+    ATTACH 'ducklake:ducklake_secret' AS ducklake;
+  `);
+
   return connection;
 };
 
-// 性能测试函数
-const measureQueryPerformance = async (
-  connection: DuckDBConnection,
-  query: string,
-  description: string,
-) => {
+/**
+ * 性能测试工具函数
+ */
+const measureQueryPerformance = async (connection: any, query: string, description: string) => {
   const startTime = performance.now();
-  const result = await connection.run(query);
-  const rows = await result.getRowObjectsJS();
-  const endTime = performance.now();
-  const executionTime = endTime - startTime;
 
-  console.log(`\n=== ${description} ===`);
-  console.log(`执行时间: ${executionTime.toFixed(2)}ms`);
-  console.log(`结果数量: ${rows.length}`);
-  console.log(`查询语句: ${query}`);
-  console.log(`前3条结果:`);
-  console.log(rows.slice(0, 3));
+  try {
+    const result = await connection.run(query);
+    const data = await result.getRowObjectsJS();
+    const endTime = performance.now();
+    const duration = endTime - startTime;
 
-  return { executionTime, rowCount: rows.length, results: rows };
+    console.log(`\n=== ${description} ===`);
+    console.log(`执行时间: ${duration.toFixed(2)}ms`);
+    console.log(`返回记录数: ${data.length}`);
+
+    if (data.length > 0 && data.length <= 5) {
+      console.log("查询结果:");
+      data.forEach((row: any, index: number) => {
+        // 处理 BigInt 序列化问题
+        const safeRow = Object.fromEntries(
+          Object.entries(row).map(([key, value]) => [
+            key,
+            typeof value === "bigint" ? value.toString() : value,
+          ]),
+        );
+        console.log(`  ${index + 1}. ${JSON.stringify(safeRow, null, 2)}`);
+      });
+    } else if (data.length > 5) {
+      console.log("前3条结果:");
+      data.slice(0, 3).forEach((row: any, index: number) => {
+        // 处理 BigInt 序列化问题
+        const safeRow = Object.fromEntries(
+          Object.entries(row).map(([key, value]) => [
+            key,
+            typeof value === "bigint" ? value.toString() : value,
+          ]),
+        );
+        console.log(`  ${index + 1}. ${JSON.stringify(safeRow, null, 2)}`);
+      });
+    }
+
+    return { duration, recordCount: data.length, success: true };
+  } catch (error) {
+    const endTime = performance.now();
+    const duration = endTime - startTime;
+    console.log(`\n=== ${description} ===`);
+    console.log(`执行时间: ${duration.toFixed(2)}ms`);
+    console.log(`错误: ${(error as Error).message}`);
+    return { duration, recordCount: 0, success: false, error };
+  }
 };
 
-const connection = await attachPostgres();
+/**
+ * 查询测试功能
+ */
+const testQueries = async () => {
+  console.log("=== 开始查询性能测试 ===");
 
-// 定义多种查询测试
-const queries = [
-  {
-    description: "基础查询 - 限制2条记录",
-    query: "SELECT * FROM db.poetry LIMIT 2",
-  },
-  {
-    description: "按作者查询 - 查找特定作者的诗",
-    query: "SELECT * FROM db.poetry WHERE author = '李白' LIMIT 5",
-  },
-  {
-    description: "按类别查询 - 查找特定类别的诗",
-    query: "SELECT * FROM db.poetry WHERE category LIKE '%唐%' LIMIT 5",
-  },
-  {
-    description: "标题模糊查询 - 包含特定字的标题",
-    query: "SELECT * FROM db.poetry WHERE title LIKE '%春%' LIMIT 5",
-  },
-  {
-    description: "文本内容查询 - 包含特定字的诗句",
-    query: "SELECT * FROM db.poetry WHERE text LIKE '%月%' LIMIT 5",
-  },
-  {
-    description: "统计查询 - 按作者统计诗的数量",
-    query:
-      "SELECT author, COUNT(*) as count FROM db.poetry GROUP BY author ORDER BY count DESC LIMIT 10",
-  },
-  {
-    description: "统计查询 - 按类别统计诗的数量",
-    query:
-      "SELECT category, COUNT(*) as count FROM db.poetry GROUP BY category ORDER BY count DESC",
-  },
-  {
-    description: "复杂查询 - 查找特定作者在特定类别的诗",
-    query: "SELECT * FROM db.poetry WHERE author = '杜甫' AND category LIKE '%唐%' LIMIT 5",
-  },
-  {
-    description: "排序查询 - 按标题排序",
-    query: "SELECT * FROM db.poetry ORDER BY title LIMIT 5",
-  },
-  {
-    description: "去重查询 - 获取所有不重复的作者",
-    query: "SELECT DISTINCT author FROM db.poetry ORDER BY author LIMIT 10",
-  },
-];
+  const connection = await attachDucklake();
 
-console.log("开始性能测试...\n");
+  // 检查表是否存在
+  console.log("检查表是否存在...");
+  const tableCheck = await connection.run(`
+    SELECT COUNT(*) as count FROM ducklake.chinese_classical
+  `);
+  const tableData = await tableCheck.getRowObjectsJS();
+  const totalRecords = tableData[0]?.count || 0;
+  console.log(`表中总记录数: ${totalRecords}`);
 
-const performanceResults = [];
-
-// 执行所有查询并记录性能
-for (const queryInfo of queries) {
-  const times = [];
-  let lastResult = null;
-  for (let i = 0; i < 5; i++) {
-    try {
-      const result = await measureQueryPerformance(
-        connection,
-        queryInfo.query,
-        `${queryInfo.description} (第${i + 1}次)`,
-      );
-      times.push(result.executionTime);
-      lastResult = result;
-    } catch (error) {
-      console.error(`查询失败: ${queryInfo.description} (第${i + 1}次)`);
-      console.error(`错误信息: ${error}`);
-      times.push(Number.POSITIVE_INFINITY);
-    }
+  if (totalRecords === 0) {
+    console.log("表中没有数据，请先导入数据");
+    return;
   }
-  // 取中位数
-  const sorted = times.slice().sort((a, b) => a - b);
-  const median = sorted[Math.floor(sorted.length / 2)];
-  performanceResults.push({
-    description: queryInfo.description,
-    executionTime: median,
-    rowCount: lastResult ? lastResult.rowCount : 0,
-  });
-}
 
-// 输出性能总结
-console.log("\n=== 性能测试总结 ===");
-console.log("查询类型\t\t执行时间(ms)\t结果数量");
-console.log("-".repeat(60));
+  const performanceResults: any[] = [];
 
-performanceResults.forEach((result) => {
-  const description = result.description.padEnd(20);
-  const time = (result.executionTime ?? 0).toFixed(2).padStart(10);
-  const count = result.rowCount.toString().padStart(10);
-  console.log(`${description}\t${time}\t${count}`);
-});
+  // 1. 基础查询测试
+  const basicQuery = await measureQueryPerformance(
+    connection,
+    `SELECT * FROM ducklake.chinese_classical LIMIT 10`,
+    "基础查询 - 获取前10条记录",
+  );
+  performanceResults.push(basicQuery);
 
-// 计算平均执行时间
-const avgTime =
-  performanceResults.reduce((sum, result) => sum + (result.executionTime ?? 0), 0) /
-  performanceResults.length;
-console.log(`\n平均执行时间: ${avgTime.toFixed(2)}ms`);
+  // 2. 计数查询测试
+  const countQuery = await measureQueryPerformance(
+    connection,
+    `SELECT COUNT(*) as total FROM ducklake.chinese_classical`,
+    "计数查询 - 统计总记录数",
+  );
+  performanceResults.push(countQuery);
 
-// 找出最快和最慢的查询
-const fastest = performanceResults.reduce((min, result) =>
-  (result.executionTime ?? Infinity) < (min.executionTime ?? Infinity) ? result : min,
-);
-const slowest = performanceResults.reduce((max, result) =>
-  (result.executionTime ?? -Infinity) > (max.executionTime ?? -Infinity) ? result : max,
-);
+  // 3. 条件查询测试
+  const conditionQuery = await measureQueryPerformance(
+    connection,
+    `SELECT id, title FROM ducklake.chinese_classical WHERE title LIKE '%史记%' OR title LIKE '%史記%' LIMIT 5`,
+    "条件查询 - 查找标题包含'史记'的记录",
+  );
+  performanceResults.push(conditionQuery);
 
-console.log(`最快查询: ${fastest.description} (${(fastest.executionTime ?? 0).toFixed(2)}ms)`);
-console.log(`最慢查询: ${slowest.description} (${(slowest.executionTime ?? 0).toFixed(2)}ms)`);
+  // 4. 文本搜索测试
+  const textSearchQuery = await measureQueryPerformance(
+    connection,
+    `SELECT id, title FROM ducklake.chinese_classical WHERE text LIKE '%项羽%' OR text LIKE '%項羽%' LIMIT 5`,
+    "文本搜索 - 在内容中搜索'项羽'",
+  );
+  performanceResults.push(textSearchQuery);
+
+  // 4.5. 查看一些示例数据
+  const sampleDataQuery = await measureQueryPerformance(
+    connection,
+    `SELECT id, title, LEFT(text, 100) as text_preview FROM ducklake.chinese_classical LIMIT 3`,
+    "示例数据查看 - 查看前3条记录",
+  );
+  performanceResults.push(sampleDataQuery);
+
+  // 5. 聚合查询测试
+  const aggregateQuery = await measureQueryPerformance(
+    connection,
+    `SELECT
+       COUNT(*) as total_records,
+       COUNT(DISTINCT title) as unique_titles,
+       AVG(LENGTH(text)) as avg_text_length
+     FROM ducklake.chinese_classical`,
+    "聚合查询 - 统计信息",
+  );
+  performanceResults.push(aggregateQuery);
+
+  // 6. 排序查询测试
+  const sortQuery = await measureQueryPerformance(
+    connection,
+    `SELECT id, title, LENGTH(text) as text_length
+     FROM ducklake.chinese_classical
+     ORDER BY LENGTH(text) DESC
+     LIMIT 5`,
+    "排序查询 - 按文本长度排序",
+  );
+  performanceResults.push(sortQuery);
+
+  // 7. 分组查询测试
+  const groupQuery = await measureQueryPerformance(
+    connection,
+    `SELECT
+       CASE
+         WHEN LENGTH(text) < 1000 THEN '短文本'
+         WHEN LENGTH(text) < 5000 THEN '中等文本'
+         ELSE '长文本'
+       END as text_category,
+       COUNT(*) as count
+     FROM ducklake.chinese_classical
+     GROUP BY text_category`,
+    "分组查询 - 按文本长度分组统计",
+  );
+  performanceResults.push(groupQuery);
+
+  // 8. 复杂查询测试
+  const complexQuery = await measureQueryPerformance(
+    connection,
+    `SELECT
+       id,
+       title,
+       LENGTH(text) as text_length,
+       CASE
+         WHEN text LIKE '%史记%' THEN '史记相关'
+         WHEN text LIKE '%汉书%' THEN '汉书相关'
+         WHEN text LIKE '%三国%' THEN '三国相关'
+         ELSE '其他'
+       END as category
+     FROM ducklake.chinese_classical
+     WHERE LENGTH(text) > 1000
+     ORDER BY text_length DESC
+     LIMIT 10`,
+    "复杂查询 - 多条件筛选和分类",
+  );
+  performanceResults.push(complexQuery);
+
+  // 性能统计
+  console.log("\n=== 性能统计汇总 ===");
+  const successfulQueries = performanceResults.filter((r) => r.success);
+  const failedQueries = performanceResults.filter((r) => !r.success);
+
+  if (successfulQueries.length > 0) {
+    const avgDuration =
+      successfulQueries.reduce((sum, r) => sum + r.duration, 0) / successfulQueries.length;
+    const minDuration = Math.min(...successfulQueries.map((r) => r.duration));
+    const maxDuration = Math.max(...successfulQueries.map((r) => r.duration));
+
+    console.log(`成功查询数: ${successfulQueries.length}`);
+    console.log(`失败查询数: ${failedQueries.length}`);
+    console.log(`平均执行时间: ${avgDuration.toFixed(2)}ms`);
+    console.log(`最短执行时间: ${minDuration.toFixed(2)}ms`);
+    console.log(`最长执行时间: ${maxDuration.toFixed(2)}ms`);
+  }
+
+  if (failedQueries.length > 0) {
+    console.log("\n失败的查询:");
+    failedQueries.forEach((query, index) => {
+      console.log(`  ${index + 1}. ${query.error?.message || "未知错误"}`);
+    });
+  }
+
+  console.log("\n查询性能测试完成！");
+};
+
+await testQueries();
