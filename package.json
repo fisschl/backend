@@ -5,23 +5,22 @@
     "@prettier/plugin-oxc": "^0.0.4",
     "@scure/base": "^1.2.6",
     "@tsconfig/bun": "^1.0.8",
-    "@types/bun": "^1.2.18",
+    "@types/bun": "^1.2.19",
     "consola": "^3.4.2",
     "date-fns": "^4.1.0",
-    "dotenv": "^17.2.0",
+    "dotenv": "^17.2.1",
     "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.44.3",
     "drizzle-zod": "^0.8.2",
     "emittery": "^1.2.0",
-    "h3": "^2.0.0-beta.1",
-    "hyparquet": "^1.17.1",
+    "h3": "^2.0.0",
     "lru-cache": "^11.1.0",
     "ofetch": "^1.4.1",
-    "oxlint": "^1.6.0",
+    "oxlint": "^1.8.0",
     "prettier": "^3.6.2",
     "radashi": "^12.6.0",
     "uuid": "^11.1.0",
-    "zod": "^4.0.5"
+    "zod": "^4.0.10"
   },
   "scripts": {
     "dev": "bun run --hot ./index.ts",
@@ -29,6 +28,5 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
-  "type": "module",
-  "dependencies": {}
+  "type": "module"
 }
