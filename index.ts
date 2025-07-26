@@ -16,7 +16,7 @@ const app = new H3()
   .use((event) => {
     const { method } = event.req;
     const { pathname } = getRequestURL(event);
-    logger.info(`[${method}] ${pathname}`);
+    logger.info(`[${new Date().toISOString()}] [${method}] ${pathname}`);
   })
   .post("/api/uuid", () => {
     return {
