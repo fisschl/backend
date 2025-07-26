@@ -13,7 +13,7 @@ const DoubaoChatZod = z.object({
   thinking: DoubaoThinkingZod.optional(),
 });
 
-export const doubao = new H3().post("/chat", async (event) => {
+export const doubaoRouter = new H3().post("/chat", async (event) => {
   const body = await event.req.json();
   const { messages, thinking } = validate(body, DoubaoChatZod);
   return fetch("https://ark.cn-beijing.volces.com/api/v3/chat/completions", {

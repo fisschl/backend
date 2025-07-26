@@ -97,7 +97,7 @@ const SignInZod = z.object({
 // 基于 UserUpdateZod 创建用户信息更新模式
 const ChangeUserInfoZod = UserUpdateZod.partial();
 
-export const user = new H3()
+export const userRouter = new H3()
   .post("/register", async (event) => {
     const data = validate(await event.req.json(), SignUpZod);
     data.password = await Bun.password.hash(data.password);

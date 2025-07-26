@@ -17,7 +17,7 @@ export const SelectMegaScienceParamsZod = z.object({
   subject: z.string().optional(),
 });
 
-export const duck = new H3().post("/megaScience", async (event) => {
+export const duckRouter = new H3().post("/megaScience", async (event) => {
   const body = validate(await event.req.json(), SelectMegaScienceParamsZod);
 
   const { pageNumber = 1, pageSize = 64 } = body.pagination ?? {};
