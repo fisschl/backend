@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --hot ./index.ts",
-    "build": "bun build --entrypoints ./index.ts --outdir ./dist --target bun --format esm --minify",
+    "build": "bun build --entrypoints ./index.ts --outdir ./dist --target bun --format esm",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
