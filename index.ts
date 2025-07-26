@@ -1,4 +1,5 @@
 import { doubao } from "@/api/doubao";
+import { duck } from "@/api/duck";
 import { user } from "@/api/user";
 import { logger } from "@/utils/logger";
 import { s3 } from "@/utils/s3";
@@ -36,6 +37,7 @@ const app = new H3()
     };
   })
   .mount("/api/user", user)
-  .mount("/api/doubao", doubao);
+  .mount("/api/doubao", doubao)
+  .mount("/api/duck", duck);
 
 serve(app, { port: 4000 });

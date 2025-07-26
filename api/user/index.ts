@@ -99,8 +99,7 @@ const ChangeUserInfoZod = UserUpdateZod.partial();
 
 export const user = new H3()
   .post("/register", async (event) => {
-    const body = await event.req.json();
-    const data = validate(body, SignUpZod);
+    const data = validate(await event.req.json(), SignUpZod);
     data.password = await Bun.password.hash(data.password);
     try {
       const [user] = await db
@@ -117,8 +116,7 @@ export const user = new H3()
     }
   })
   .post("/login", async (event) => {
-    const body = await event.req.json();
-    const data = validate(body, SignInZod);
+    const data = validate(await event.req.json(), SignInZod);
     const [user] = await db.select().from(users).where(eq(users.email, data.email));
     if (!user) throw new HTTPError("用户名或密码错误", { status: 401 });
     const isPasswordValid = await Bun.password.verify(data.password, user.password);
@@ -129,8 +127,7 @@ export const user = new H3()
   })
   .put("/userInfo", async (event) => {
     const currentUser = await useNeedLogin(event);
-    const body = await event.req.json();
-    const data = validate(body, ChangeUserInfoZod);
+    const data = validate(await event.req.json(), ChangeUserInfoZod);
     const userId = data.userId || currentUser.userId;
     if (userId !== currentUser.userId && currentUser.role !== "SUPER_ADMIN")
       throw new HTTPError("无权限", { status: 403 });

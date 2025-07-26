@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { index, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { index, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", ["USER", "SUPER_ADMIN"]);
 
@@ -45,3 +45,16 @@ export const tokensRelations = relations(tokens, ({ one }) => ({
     references: [users.userId],
   }),
 }));
+
+export const megaScience = pgTable(
+  "mega_science",
+  {
+    id: uuid("id").primaryKey(),
+    question: text("question").notNull(),
+    answer: text("answer").notNull(),
+    subject: varchar("subject", { length: 255 }).notNull(),
+    referenceAnswer: text("reference_answer").notNull(),
+    source: text("source").notNull(),
+  },
+  (table) => [index("mega_science_subject_idx").on(table.subject)],
+);

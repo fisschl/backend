@@ -3,7 +3,6 @@
   "workspaces": {
     "": {
       "devDependencies": {
-        "@duckdb/node-api": "^1.3.2-alpha.25",
         "@prettier/plugin-oxc": "^0.0.4",
         "@scure/base": "^1.2.6",
         "@tsconfig/bun": "^1.0.8",
@@ -15,7 +14,7 @@
         "drizzle-orm": "^0.44.3",
         "drizzle-zod": "^0.8.2",
         "emittery": "^1.2.0",
-        "h3": "^2.0.0",
+        "h3": "^2.0.0-beta.1",
         "lru-cache": "^11.1.0",
         "ofetch": "^1.4.1",
         "oxlint": "^1.8.0",
@@ -28,20 +27,6 @@
   },
   "packages": {
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "https://registry.npmmirror.com/@drizzle-team/brocli/-/brocli-0.10.2.tgz", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
-
-    "@duckdb/node-api": ["@duckdb/node-api@1.3.2-alpha.25", "https://registry.npmmirror.com/@duckdb/node-api/-/node-api-1.3.2-alpha.25.tgz", { "dependencies": { "@duckdb/node-bindings": "1.3.2-alpha.25" } }, "sha512-AzDyyjTtnYUxoy/MHDFRwfOggDOkS8RBgGA82OI6nla8B9NDNZeAYJ97T3PvCL8cx7y00EtGVN3g03aoW4fRmw=="],
-
-    "@duckdb/node-bindings": ["@duckdb/node-bindings@1.3.2-alpha.25", "https://registry.npmmirror.com/@duckdb/node-bindings/-/node-bindings-1.3.2-alpha.25.tgz", { "optionalDependencies": { "@duckdb/node-bindings-darwin-arm64": "1.3.2-alpha.25", "@duckdb/node-bindings-darwin-x64": "1.3.2-alpha.25", "@duckdb/node-bindings-linux-arm64": "1.3.2-alpha.25", "@duckdb/node-bindings-linux-x64": "1.3.2-alpha.25", "@duckdb/node-bindings-win32-x64": "1.3.2-alpha.25" } }, "sha512-FkoSaoeRAi6Em0hs0qzr3SN04ykN99R+Qap5kLwhi6GNPnHzWMU1VrNpK9cE4eBj0n+RWlNK0TiO712dn44QzQ=="],
-
-    "@duckdb/node-bindings-darwin-arm64": ["@duckdb/node-bindings-darwin-arm64@1.3.2-alpha.25", "https://registry.npmmirror.com/@duckdb/node-bindings-darwin-arm64/-/node-bindings-darwin-arm64-1.3.2-alpha.25.tgz", { "os": "darwin", "cpu": "arm64" }, "sha512-vRjzNgkz2TAYW5c2rzPwcHBctBWr0lxQ4blFASAv0DdeGPOeuCMXJUA3982X7iPNwAppH0VMII6cYzON0GA+RA=="],
-
-    "@duckdb/node-bindings-darwin-x64": ["@duckdb/node-bindings-darwin-x64@1.3.2-alpha.25", "https://registry.npmmirror.com/@duckdb/node-bindings-darwin-x64/-/node-bindings-darwin-x64-1.3.2-alpha.25.tgz", { "os": "darwin", "cpu": "x64" }, "sha512-BSg/DZjT25QZe87+pmdMfE1XlHdi2WxtAO+F2PEXN6VnPeLyTdl5bYlnhOGrDKquKDmUEqok5OwF7mR4QfU+Aw=="],
-
-    "@duckdb/node-bindings-linux-arm64": ["@duckdb/node-bindings-linux-arm64@1.3.2-alpha.25", "https://registry.npmmirror.com/@duckdb/node-bindings-linux-arm64/-/node-bindings-linux-arm64-1.3.2-alpha.25.tgz", { "os": "linux", "cpu": "arm64" }, "sha512-VhjUH/AvolZWDX/URqiIh58JbAB1vYbDgSmQ0wvqhS9jzJ9Sj88urGDw+XWXw49Rr4BhIgDtX70SoARhO2i/Gg=="],
-
-    "@duckdb/node-bindings-linux-x64": ["@duckdb/node-bindings-linux-x64@1.3.2-alpha.25", "https://registry.npmmirror.com/@duckdb/node-bindings-linux-x64/-/node-bindings-linux-x64-1.3.2-alpha.25.tgz", { "os": "linux", "cpu": "x64" }, "sha512-raav2ypBiV4TlpnKU9hocsuFDO4ipwIcQQmkMIh20/Qd9vkv35QcQYNqStiZVJh2LAaVoQffNvcKMlclblYqUQ=="],
-
-    "@duckdb/node-bindings-win32-x64": ["@duckdb/node-bindings-win32-x64@1.3.2-alpha.25", "https://registry.npmmirror.com/@duckdb/node-bindings-win32-x64/-/node-bindings-win32-x64-1.3.2-alpha.25.tgz", { "os": "win32", "cpu": "x64" }, "sha512-/fAKax+xYkdRhkUl3PkL3HfFd1ZsezG1yiOkL0StHBdD3xB80Njm1JGHxx1fO3WWE5XTbE1MTJ5I0xjEzPwsfQ=="],
 
     "@emnapi/core": ["@emnapi/core@1.4.4", "https://registry.npmmirror.com/@emnapi/core/-/core-1.4.4.tgz", { "dependencies": { "@emnapi/wasi-threads": "1.0.3", "tslib": "^2.4.0" } }, "sha512-A9CnAbC6ARNMKcIcrQwq6HeHCjpcBZ5wSx4U01WXCqEKlrzB9F9315WDNHkrs2xbx7YjjSxbUYxuN6EQzpcY2g=="],
 
@@ -177,6 +162,8 @@
 
     "consola": ["consola@3.4.2", "https://registry.npmmirror.com/consola/-/consola-3.4.2.tgz", {}, "sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA=="],
 
+    "cookie-es": ["cookie-es@2.0.0", "https://registry.npmmirror.com/cookie-es/-/cookie-es-2.0.0.tgz", {}, "sha512-RAj4E421UYRgqokKUmotqAwuplYw15qtdXfY+hGzgCJ/MBjCVZcSoHK/kH9kocfjRjcDME7IiDWR/1WX1TM2Pg=="],
+
     "csstype": ["csstype@3.1.3", "https://registry.npmmirror.com/csstype/-/csstype-3.1.3.tgz", {}, "sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw=="],
 
     "date-fns": ["date-fns@4.1.0", "https://registry.npmmirror.com/date-fns/-/date-fns-4.1.0.tgz", {}, "sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg=="],
@@ -199,9 +186,11 @@
 
     "esbuild-register": ["esbuild-register@3.6.0", "https://registry.npmmirror.com/esbuild-register/-/esbuild-register-3.6.0.tgz", { "dependencies": { "debug": "^4.3.4" }, "peerDependencies": { "esbuild": ">=0.12 <1" } }, "sha512-H2/S7Pm8a9CL1uhp9OvjwrBh5Pvx0H8qVOxNu8Wed9Y7qv56MPtq+GGM8RJpq6glYJn9Wspr8uw7l55uyinNeg=="],
 
+    "fetchdts": ["fetchdts@0.1.5", "https://registry.npmmirror.com/fetchdts/-/fetchdts-0.1.5.tgz", {}, "sha512-GCxyHdCCUm56atms+sIjOsAENvhebk3HAM1CfzgKCgMRjPUylpkkPmNknsaXe1gDRqM3cJbMhpkXMhCzXSE+Jg=="],
+
     "get-tsconfig": ["get-tsconfig@4.10.1", "https://registry.npmmirror.com/get-tsconfig/-/get-tsconfig-4.10.1.tgz", { "dependencies": { "resolve-pkg-maps": "^1.0.0" } }, "sha512-auHyJ4AgMz7vgS8Hp3N6HXSmlMdUyhSUrfBF16w153rxtLIEOE+HGqaBppczZvnHLqQJfiHotCYpNhl0lUROFQ=="],
 
-    "h3": ["h3@2.0.0", "https://registry.npmmirror.com/h3/-/h3-2.0.0.tgz", {}, "sha512-3INyyEir2VkWXD3auY+uUL/mqrgYX5ejRdUjtjyd4AOZcoijIyvf6PkBPsn+NFGE5rks2nCcMIOLZGTxpp/A7w=="],
+    "h3": ["h3@2.0.0-beta.1", "https://registry.npmmirror.com/h3/-/h3-2.0.0-beta.1.tgz", { "dependencies": { "cookie-es": "^2.0.0", "fetchdts": "^0.1.5", "rou3": "^0.7.3", "srvx": "^0.8.1" }, "peerDependencies": { "crossws": "^0.4.1" }, "optionalPeers": ["crossws"] }, "sha512-sAhBVWbCi2AzApSLZhk41Rmiz+gjPhoAEqjJ96VH3OwyS3Co2kHVx3FZk0/OCCrzKWzYx3Pwf5WbEKDQ2plifg=="],
 
     "lru-cache": ["lru-cache@11.1.0", "https://registry.npmmirror.com/lru-cache/-/lru-cache-11.1.0.tgz", {}, "sha512-QIXZUBJUx+2zHUdQujWejBkcD9+cs94tLn0+YL8UrCh+D5sCXZ4c7LaEH48pNwRY3MLDgqUFyhlCyjJPf1WP0A=="],
 
@@ -245,11 +234,15 @@
 
     "resolve-pkg-maps": ["resolve-pkg-maps@1.0.0", "https://registry.npmmirror.com/resolve-pkg-maps/-/resolve-pkg-maps-1.0.0.tgz", {}, "sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw=="],
 
+    "rou3": ["rou3@0.7.3", "https://registry.npmmirror.com/rou3/-/rou3-0.7.3.tgz", {}, "sha512-KKenF/hB2iIhS1ohj226LT+/8uKCBpSMqeS4V1UPN9vad99uLoyIhrULRRB1skaB40LQHcBlSsAi3sT8MaoDDQ=="],
+
     "source-map": ["source-map@0.6.1", "https://registry.npmmirror.com/source-map/-/source-map-0.6.1.tgz", {}, "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g=="],
 
     "source-map-support": ["source-map-support@0.5.21", "https://registry.npmmirror.com/source-map-support/-/source-map-support-0.5.21.tgz", { "dependencies": { "buffer-from": "^1.0.0", "source-map": "^0.6.0" } }, "sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w=="],
 
     "split2": ["split2@4.2.0", "https://registry.npmmirror.com/split2/-/split2-4.2.0.tgz", {}, "sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg=="],
+
+    "srvx": ["srvx@0.8.2", "https://registry.npmmirror.com/srvx/-/srvx-0.8.2.tgz", { "dependencies": { "cookie-es": "^2.0.0" } }, "sha512-anC1+7B6tryHQd4lFVSDZIfZ1QwJwqm5h1iveKwC1E40PA8nOD50hEt7+AlUoGc9jW3OdmztWBqf4yHCdCPdRQ=="],
 
     "tslib": ["tslib@2.8.1", "https://registry.npmmirror.com/tslib/-/tslib-2.8.1.tgz", {}, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
 
