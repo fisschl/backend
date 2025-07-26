@@ -7,10 +7,10 @@ export const staticRouter = new H3().get("/**", async (event) => {
   const s3Path = pathname.slice(pathname.indexOf("/static/"));
   const file = s3.file(s3Path);
   const { type, size } = await file.stat();
-  const bytes = await file.bytes();
+  const stream = file.stream();
   const headers = new Headers();
   headers.set("Cache-Control", `public, max-age=${daysToSeconds(30)}`);
   headers.set("Content-Type", type);
   headers.set("Content-Length", size.toString());
-  return new Response(bytes, { headers });
+  return new Response(stream, { headers });
 });
