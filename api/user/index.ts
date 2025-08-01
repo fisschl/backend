@@ -6,8 +6,8 @@ import { validate } from "@/utils/zod";
 import { subDays } from "date-fns";
 import { eq, inArray, lt } from "drizzle-orm";
 import { getCookie, getQuery, H3, H3Event, HTTPError, setCookie } from "h3";
+import { omit, throttle } from "lodash-es";
 import { LRUCache } from "lru-cache";
-import { omit, throttle } from "radashi";
 import { z } from "zod";
 
 const tokenFromEvent = (event: H3Event) => {
@@ -54,7 +54,7 @@ export const selectUserByToken = async (token: string) => {
   return user;
 };
 
-const useNeedLogin = async (event: any) => {
+const useNeedLogin = async (event: H3Event) => {
   const token = tokenFromEvent(event);
   if (!token) throw new HTTPError("请先登录", { status: 401 });
   const user = await selectUserByToken(token);
@@ -62,7 +62,7 @@ const useNeedLogin = async (event: any) => {
   return user;
 };
 
-const registerNewToken = async (event: any, user: CacheUser) => {
+const registerNewToken = async (event: H3Event, user: CacheUser) => {
   const token = uuid();
   await db.insert(tokens).values({
     token,
@@ -72,7 +72,10 @@ const registerNewToken = async (event: any, user: CacheUser) => {
   return token;
 };
 
-const clearOutdatedToken = throttle({ interval: 1000 * 60 }, async () => {
+export const later = (fn: () => unknown) =>
+  throttle(fn, 1000 * 60, { leading: false, trailing: true });
+
+const clearOutdatedToken = later(async () => {
   const date = subDays(new Date(), 60);
   const oldTokens = await db
     .select({ token: tokens.token })
