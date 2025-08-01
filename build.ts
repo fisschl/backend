@@ -1,8 +1,12 @@
+import consola from "consola";
+import { filesize } from "filesize";
 import fs from "node:fs/promises";
 import path from "node:path";
 
 const distDir = "./dist";
+
 await fs.mkdir(distDir, { recursive: true });
+
 for (const file of await fs.readdir(distDir)) {
   const filePath = path.join(distDir, file);
   const fileStat = await fs.stat(filePath);
@@ -18,3 +22,18 @@ await Bun.build({
   target: "bun",
   format: "esm",
 });
+
+const distPrint = async (dir: string) => {
+  for (const file of await fs.readdir(dir)) {
+    const filePath = path.join(dir, file);
+    const fileStat = await fs.stat(filePath);
+    if (fileStat.isDirectory()) {
+      await distPrint(filePath);
+      continue;
+    }
+    const size = filesize(fileStat.size, { standard: "jedec" });
+    consola.success(filePath, size);
+  }
+};
+
+await distPrint(distDir);

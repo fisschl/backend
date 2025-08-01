@@ -22,6 +22,7 @@
         "@types/lodash-es": "^4.17.12",
         "dotenv": "^17.2.1",
         "drizzle-kit": "^0.31.4",
+        "filesize": "^11.0.2",
         "oxlint": "^1.9.0",
         "prettier": "^3.6.2",
       },
@@ -189,6 +190,8 @@
     "esbuild-register": ["esbuild-register@3.6.0", "https://registry.npmmirror.com/esbuild-register/-/esbuild-register-3.6.0.tgz", { "dependencies": { "debug": "^4.3.4" }, "peerDependencies": { "esbuild": ">=0.12 <1" } }, "sha512-H2/S7Pm8a9CL1uhp9OvjwrBh5Pvx0H8qVOxNu8Wed9Y7qv56MPtq+GGM8RJpq6glYJn9Wspr8uw7l55uyinNeg=="],
 
     "fetchdts": ["fetchdts@0.1.5", "https://registry.npmmirror.com/fetchdts/-/fetchdts-0.1.5.tgz", {}, "sha512-GCxyHdCCUm56atms+sIjOsAENvhebk3HAM1CfzgKCgMRjPUylpkkPmNknsaXe1gDRqM3cJbMhpkXMhCzXSE+Jg=="],
+
+    "filesize": ["filesize@11.0.2", "https://registry.npmmirror.com/filesize/-/filesize-11.0.2.tgz", {}, "sha512-s/iAeeWLk5BschUIpmdrF8RA8lhFZ/xDZgKw1Tan72oGws1/dFGB06nYEiyyssWUfjKNQTNRlrwMVjO9/hvXDw=="],
 
     "get-tsconfig": ["get-tsconfig@4.10.1", "https://registry.npmmirror.com/get-tsconfig/-/get-tsconfig-4.10.1.tgz", { "dependencies": { "resolve-pkg-maps": "^1.0.0" } }, "sha512-auHyJ4AgMz7vgS8Hp3N6HXSmlMdUyhSUrfBF16w153rxtLIEOE+HGqaBppczZvnHLqQJfiHotCYpNhl0lUROFQ=="],
 
