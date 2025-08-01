@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --hot ./index.ts",
-    "build": "bun build --entrypoints ./index.ts --outdir ./dist --target bun --format esm --splitting",
+    "build": "bun build --entrypoints ./index.ts --outdir ./dist --target bun --format esm --splitting --minify",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
@@ -16,16 +16,16 @@
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.1",
     "drizzle-kit": "^0.31.4",
-    "drizzle-orm": "^0.44.3",
+    "drizzle-orm": "^0.44.4",
     "drizzle-zod": "^0.8.2",
     "emittery": "^1.2.0",
-    "h3": "^2.0.0-beta.1",
+    "h3": "2.0.0-beta.3",
     "lru-cache": "^11.1.0",
     "ofetch": "^1.4.1",
-    "oxlint": "^1.8.0",
+    "oxlint": "^1.9.0",
     "prettier": "^3.6.2",
     "radashi": "^12.6.0",
     "uuid": "^11.1.0",
-    "zod": "^4.0.10"
+    "zod": "^4.0.14"
   }
 }
