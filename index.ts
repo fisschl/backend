@@ -3,14 +3,19 @@ import { duckRouter } from "@/api/duck";
 import { userRouter } from "@/api/user";
 import { logger } from "@/utils/logger";
 import { uuid } from "@/utils/uuid";
-import { getRequestURL, H3, handleCors, serve } from "h3";
+import { getRequestURL, H3, serve } from "h3";
 
 const app = new H3()
   .use((event) => {
-    const isPreflight = handleCors(event, {
-      preflight: { statusCode: 204 },
-    });
-    if (isPreflight) return true;
+    const { method } = event.req;
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "*",
+    };
+    if (method === "OPTIONS") return new Response(null, { headers: corsHeaders, status: 204 });
+    const { headers } = event.res;
+    Object.entries(corsHeaders).forEach(([key, value]) => headers.set(key, value));
   })
   .use((event) => {
     const { method } = event.req;
