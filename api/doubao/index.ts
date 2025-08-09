@@ -2,7 +2,7 @@ import { validate } from "@/utils/zod";
 import { H3 } from "h3";
 import { z } from "zod";
 
-const { DOUBAO_API_KEY, DOUBAO_MODEL } = Bun.env;
+const { DOUBAO_API_KEY } = Bun.env;
 
 const DoubaoThinkingZod = z.object({
   type: z.enum(["enabled", "disabled", "auto"]),
@@ -11,11 +11,12 @@ const DoubaoThinkingZod = z.object({
 const DoubaoChatZod = z.object({
   messages: z.array(z.any()),
   thinking: DoubaoThinkingZod.optional(),
+  model: z.string(),
 });
 
 export const doubaoRouter = new H3().post("/chat", async (event) => {
   const body = await event.req.json();
-  const { messages, thinking } = validate(body, DoubaoChatZod);
+  const { messages, thinking, model } = validate(body, DoubaoChatZod);
   return fetch("https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
     method: "POST",
     headers: {
@@ -23,7 +24,7 @@ export const doubaoRouter = new H3().post("/chat", async (event) => {
       Authorization: `Bearer ${DOUBAO_API_KEY}`,
     },
     body: JSON.stringify({
-      model: DOUBAO_MODEL,
+      model: model,
       messages,
       stream: true,
       thinking,
