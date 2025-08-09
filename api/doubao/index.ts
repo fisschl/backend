@@ -15,8 +15,7 @@ const DoubaoChatZod = z.object({
 });
 
 export const doubaoRouter = new H3().post("/chat", async (event) => {
-  const body = await event.req.json();
-  const { messages, thinking, model } = validate(body, DoubaoChatZod);
+  const body = validate(await event.req.json(), DoubaoChatZod);
   return fetch("https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
     method: "POST",
     headers: {
@@ -24,10 +23,10 @@ export const doubaoRouter = new H3().post("/chat", async (event) => {
       Authorization: `Bearer ${DOUBAO_API_KEY}`,
     },
     body: JSON.stringify({
-      model: model,
-      messages,
+      model: body.model,
+      messages: body.messages,
       stream: true,
-      thinking,
+      thinking: body.thinking,
     }),
   });
 });
